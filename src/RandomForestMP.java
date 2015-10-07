@@ -82,7 +82,7 @@ public final class RandomForestMP {
     }
 
     static private double[] parseValueList(String[] tokenList) {
-        double[] valueList = new double[tokenList.length - 1];
+        double[] valueList = new double[tokenList.length];
         for (int i = 0; i < tokenList.length; i++) {
             valueList[i] = Double.parseDouble(tokenList[i]);
         }
