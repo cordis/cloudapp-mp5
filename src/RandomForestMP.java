@@ -27,7 +27,7 @@ public final class RandomForestMP {
 
         SparkConf sparkConf = new SparkConf().setAppName("RandomForestMP");
         JavaSparkContext sc = new JavaSparkContext(sparkConf);
-        JavaRDD<LabeledPoint> trainingLabeledPointList = sc.textFile(training_data_path).map(new ParseLabeledPoint());
+        JavaRDD<String> trainingLineList = sc.textFile(training_data_path);
         JavaRDD<String> testLineList = sc.textFile(test_data_path);
 
         Integer numClasses = 2;
@@ -40,7 +40,7 @@ public final class RandomForestMP {
         Integer seed = 12345;
 
         RandomForestModel model = RandomForest.trainClassifier(
-                trainingLabeledPointList,
+                trainingLineList.map(new ParseLabeledPoint()),
                 numClasses,
                 categoricalFeaturesInfo,
                 numTrees,
@@ -76,15 +76,14 @@ public final class RandomForestMP {
             String[] tokenList = DELIMITER.split(line);
             double[] valueList = parseValueList(tokenList);
             Vector features = makeFeatures(valueList);
-            Double label = valueList[valueList.length - 1];
+            double label = valueList[valueList.length - 1];
             return new LabeledPoint(label, features);
         }
-
     }
 
     static private double[] parseValueList(String[] tokenList) {
         double[] valueList = new double[tokenList.length - 1];
-        for (int i = 0; i < tokenList.length - 1; i++) {
+        for (int i = 0; i < tokenList.length; i++) {
             valueList[i] = Double.parseDouble(tokenList[i]);
         }
         return valueList;
