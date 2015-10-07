@@ -27,7 +27,7 @@ public final class RandomForestMP {
 
         SparkConf sparkConf = new SparkConf().setAppName("RandomForestMP");
         JavaSparkContext sc = new JavaSparkContext(sparkConf);
-        JavaRDD<String> trainingLineList = sc.textFile(training_data_path);
+        JavaRDD<LabeledPoint> trainingLabeledPointList = sc.textFile(training_data_path).map(new ParseLabeledPoint());
         JavaRDD<String> testLineList = sc.textFile(test_data_path);
 
         Integer numClasses = 2;
@@ -40,7 +40,7 @@ public final class RandomForestMP {
         Integer seed = 12345;
 
         RandomForestModel model = RandomForest.trainClassifier(
-                trainingLineList.map(new ParseLabeledPoint()),
+                trainingLabeledPointList,
                 numClasses,
                 categoricalFeaturesInfo,
                 numTrees,
@@ -65,7 +65,7 @@ public final class RandomForestMP {
         public Vector call(String line) throws Exception {
             String[] tokenList = DELIMITER.split(line);
             double[] valueList = parseValueList(tokenList);
-            return  makeFeatures(valueList);
+            return makeFeatures(valueList);
         }
 
     }
@@ -82,6 +82,18 @@ public final class RandomForestMP {
 
     }
 
+    static private double[] parseValueList(String[] tokenList) {
+        double[] valueList = new double[tokenList.length - 1];
+        for (int i = 0; i < tokenList.length - 1; i++) {
+            valueList[i] = Double.parseDouble(tokenList[i]);
+        }
+        return valueList;
+    }
+
+    static private Vector makeFeatures(double[] valueList) {
+        return Vectors.dense(Arrays.copyOfRange(valueList, 0, valueList.length - 1));
+    }
+
     private static class Classifier implements Function<Vector, LabeledPoint> {
         final private RandomForestModel model;
 
@@ -94,18 +106,6 @@ public final class RandomForestMP {
             return new LabeledPoint(this.model.predict(features), features);
         }
 
-    }
-
-    static private double[] parseValueList(String[] tokenList) {
-        double[] valueList = new double[tokenList.length - 1];
-        for (int i = 0; i < tokenList.length - 1; i++) {
-            valueList[i] = Double.parseDouble(tokenList[i]);
-        }
-        return valueList;
-    }
-
-    static private Vector makeFeatures(double[] valueList) {
-        return Vectors.dense(Arrays.copyOfRange(valueList, 0, valueList.length - 1));
     }
 
 }
