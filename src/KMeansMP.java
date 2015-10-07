@@ -62,7 +62,7 @@ public final class KMeansMP {
     private static class ParseLabel implements Function<String, String> {
         @Override
         public String call(String line) throws Exception {
-            return DELIMITER.split(line, 1)[0];
+            return DELIMITER.split(line)[0];
         }
     }
 
